@@ -20,7 +20,7 @@ node scripts/check-redaction.mjs   # 脱敏守卫（不得含真实 ID/本机路
 
 ## 分支与提交
 
-- 从 `main` 拉特性分支；commit 遵循 Conventional Commits（`fix:` / `feat:` / `test:` / `docs:` / `chore:`），主题行可用中文，须说清「改了什么 + 为什么」。
+- 本 fork 的日常特性分支从 `stable` 拉出；`main` 保留为上游同步分支。维护与升级步骤见 [fork 维护约定](./docs/fork-maintenance.md)。commit 遵循 Conventional Commits（`fix:` / `feat:` / `test:` / `docs:` / `chore:`），主题行可用中文，须说清「改了什么 + 为什么」。
 - 实机 bug 修复必须三件套：代码 + 回归测试 + `docs/gotchas.md` 对应节沉淀（现象/根因/修复/验证）。
 - 修复索引同步：`docs/status.md` 第 2 节加一行（现象/根因/commit/细节指向）。
 

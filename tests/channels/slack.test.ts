@@ -3,6 +3,7 @@
  * 全部走 fake 传输（deps 注入），无真实网络。 */
 import assert from "node:assert/strict";
 import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { basename, join } from "node:path";
 import { mock, test } from "node:test";
@@ -135,7 +136,7 @@ interface Harness {
   emitted: unknown[];
   errors: Error[];
   logs: string[];
-  cleanup(): void;
+  cleanup(): Promise<void>;
 }
 
 function makeHarness(): Harness {
@@ -168,7 +169,8 @@ function makeHarness(): Harness {
     emitted,
     errors,
     logs,
-    cleanup: () => rmSync(dir, { recursive: true, force: true }),
+    // Let finite outbound persistence finish if it races test teardown.
+    cleanup: () => rm(dir, { recursive: true, force: true, maxRetries: 5, retryDelay: 10 }),
   };
 }
 
@@ -514,7 +516,7 @@ test("start：缺失/格式错误的凭据给出可执行中文提示", async ()
     };
     await assert.rejects(() => createAdapter(badApp, stubDeps(badApp)).start(), /xapp-/);
   } finally {
-    harness.cleanup();
+    await harness.cleanup();
   }
 });
 
@@ -540,7 +542,7 @@ test("start：auth.test invalid_auth → UserFacingError", async () => {
       (error: unknown) => error instanceof Error && /Bot Token/.test(error.message),
     );
   } finally {
-    harness.cleanup();
+    await harness.cleanup();
   }
 });
 
@@ -553,7 +555,7 @@ test("start：auth.test 身份与连接配置不一致 → UserFacingError", asy
       /不一致/,
     );
   } finally {
-    harness.cleanup();
+    await harness.cleanup();
   }
 });
 
@@ -569,7 +571,7 @@ test("start：apps.connections.open 返回非 wss 地址 → UserFacingError", a
       /Socket Mode/,
     );
   } finally {
-    harness.cleanup();
+    await harness.cleanup();
   }
 });
 
@@ -587,7 +589,7 @@ test("start：apps.connections.open invalid_auth → App Token 错误提示", as
       /App Token/,
     );
   } finally {
-    harness.cleanup();
+    await harness.cleanup();
   }
 });
 
@@ -607,7 +609,7 @@ test("start：瞬时错误走 onError 退避重试，abort 后退出", async () 
     assert.ok(settled instanceof Error);
     assert.ok(!(settled instanceof UserFacingError), "瞬时错误不应变成凭据错误");
   } finally {
-    harness.cleanup();
+    await harness.cleanup();
   }
 });
 
@@ -661,7 +663,7 @@ test("Socket Mode：hello 就绪、ACK、事件投递、replyToBot、去重持�
     assert.equal(socket.closes.at(-1)?.code, 4000);
   } finally {
     await adapter?.stop();
-    harness.cleanup();
+    await harness.cleanup();
   }
 });
 
@@ -694,7 +696,7 @@ test("Socket Mode：断开后按退避重连并恢复收发", async () => {
     assert.ok(harness.emitted.length === 1);
   } finally {
     await adapter?.stop();
-    harness.cleanup();
+    await harness.cleanup();
   }
 });
 
@@ -718,7 +720,7 @@ test("sendText：mrkdwn 渲染、fence 分块、thread_ts 与 messageId", async 
     assert.equal(result.messageId, "1700000000.000001");
     assert.equal(adapter.isOwnMessage("1700000000.000001"), true);
   } finally {
-    harness.cleanup();
+    await harness.cleanup();
   }
 });
 
@@ -739,7 +741,7 @@ test("sendText：markdown 被拒时回退纯文本重发", async () => {
     assert.ok((posts[1].body.text as string).includes("https://e.com"));
     assert.equal(result.messageId, "1700000010.000001");
   } finally {
-    harness.cleanup();
+    await harness.cleanup();
   }
 });
 
@@ -759,7 +761,7 @@ test("sendText：sendText 失败抛 UserFacingError；空文本为空操作", as
     );
     assert.deepEqual(await adapter.sendText({ chatId: "C1", text: "   " }), {});
   } finally {
-    harness.cleanup();
+    await harness.cleanup();
   }
 });
 
@@ -782,7 +784,7 @@ test("stream：startStream → appendStream 增量 → stopStream 终稿", async
     assert.equal(done.messageId, "1700000099.000100");
     await assert.rejects(() => adapter.streamAppend(streamId, "再来"), /不存在/);
   } finally {
-    harness.cleanup();
+    await harness.cleanup();
   }
 });
 
@@ -810,7 +812,7 @@ test("stream：startStream 不可用时回退占位消息 + chat.update", async 
     assert.equal(calls.filter((call) => call.method === "chat.update").length, 2);
     assert.equal(calls.at(-1)?.body.text, "*完成*");
   } finally {
-    harness.cleanup();
+    await harness.cleanup();
   }
 });
 
@@ -837,7 +839,7 @@ test("stream：startStream 瞬时故障（transport）同样回退占位消息 +
     assert.equal(calls.at(-1)?.body.text, "完成");
     assert.equal(harness.errors.length, 0);
   } finally {
-    harness.cleanup();
+    await harness.cleanup();
   }
 });
 
@@ -854,7 +856,7 @@ test("stream：startStream 非瞬时错误（invalid_auth）仍上抛且不走�
     await assert.rejects(() => adapter.streamStart("C0CHANNEL"), /invalid_auth/);
     assert.equal(calls.filter((call) => call.method === "chat.postMessage").length, 0);
   } finally {
-    harness.cleanup();
+    await harness.cleanup();
   }
 });
 
@@ -897,7 +899,7 @@ test("sendMedia：三步上传（getUploadURLExternal → PUT → completeUpload
     assert.deepEqual(result, {});
     assert.equal(adapter.isOwnMessage("1700000099.000100"), false);
   } finally {
-    harness.cleanup();
+    await harness.cleanup();
   }
 });
 
@@ -921,7 +923,7 @@ test("editMessage：chat.update 且 message_not_modified 视为成功", async ()
     assert.equal(updates.length, 2);
     assert.equal(updates[0].body.text, "*改后*");
   } finally {
-    harness.cleanup();
+    await harness.cleanup();
   }
 });
 
@@ -938,7 +940,7 @@ test("testConnection：auth.test 结果映射", async () => {
     assert.equal(result.ok, false);
     assert.ok(result.detail?.includes("invalid_auth"));
   } finally {
-    harness.cleanup();
+    await harness.cleanup();
   }
 });
 
@@ -1100,6 +1102,6 @@ test("状态文件：重启后 seen 事件去重仍生效", async () => {
     await adapter2.stop();
   } finally {
     await adapter?.stop();
-    harness.cleanup();
+    await harness.cleanup();
   }
 });

@@ -254,10 +254,16 @@ test("testConnection：Messages 自动化不可用 → ok=false 中文提示", a
 test("testConnection：非 macOS → ok=false 中文提示", async () => {
   const h = createHarness({ pollBatches: [] });
   assert.ok(h.adapter.testConnection, "testConnection 应当实现");
-  const result = await h.adapter.testConnection();
-  assert.equal(result.ok, false);
-  assert.match(result.detail ?? "", /仅支持 macOS/);
-  assert.equal(h.queries.length, 0);
+  const original = process.platform;
+  Object.defineProperty(process, "platform", { value: "linux", configurable: true });
+  try {
+    const result = await h.adapter.testConnection();
+    assert.equal(result.ok, false);
+    assert.match(result.detail ?? "", /仅支持 macOS/);
+    assert.equal(h.queries.length, 0);
+  } finally {
+    Object.defineProperty(process, "platform", { value: original, configurable: true });
+  }
 });
 
 test("非 macOS：checkPlatform 抛 UserFacingError（中文提示）", () => {

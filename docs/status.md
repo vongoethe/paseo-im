@@ -5,6 +5,16 @@
 > 三通道实机在线的活文档：通道状态、缺陷修复索引（commit 对照）、自测/验收命令、待办清单。
 > 变更后更新本文件；踩坑细节一律沉淀到 `docs/gotchas.md`，本文只放「是什么/怎么验/还欠什么」。
 
+## Fork 兼容状态（2026-11-24）
+
+| 项目 | 当前状态 | 验证 / 限制 |
+| --- | --- | --- |
+| Paseo 版本 | `>=0.17.4 <0.18.0`；client / plugin SDK 均固定为 0.17.4 | [GitHub 最新稳定版](https://github.com/getpaseo/paseo/releases/tag/v0.17.4)；双侧 typecheck + 463 测试通过；此版本实机加载与渠道收发待验 |
+| 分支维护 | 本地 `stable` 为拟用默认分支，`main` 保持上游同步用途 | GitHub 默认仍为 `main`，未 push、未开启定时同步；步骤见 [fork 维护约定](./fork-maintenance.md) |
+| macOS 门禁 | 修复非 macOS 用例的 platform 模拟，以及 Slack / Matrix 测试临时目录清理竞态 | 仅调整测试；未改渠道适配器，见 gotchas §9 |
+
+兼容性修复的本地提交主题：`fix(compat): support Paseo 0.17.4`（通过 `git log --oneline --grep='support Paseo 0.17.4'` 对照）。Agent 参与：autonomous，OpenAI / GPT-6；尚待人工 review。
+
 ## 1. 通道状态（实机验收截止 2026-11-08）
 
 | 渠道 | 连接 | 状态 | 绑定去向 | 备注 |
@@ -28,6 +38,7 @@
 | 钉钉卡片无令牌（P0） | 整渠道进度流必坏 | 审查发现 | channel-test-matrix |
 | P1×10 / P2×30 | 各渠道审查项 | 四组并行深审 | 审查修复提交线（36 文件 +1993/-295） | 同上 |
 | 全新安装构建失败（issue #1） | `paseo plugin add` 报 `Could not resolve type dependency "@getpaseo/client"`，侧栏无 IM 入口 | `@getpaseo/client` 只在 devDependencies，`npm ci --omit=dev` 后生产树无包，宿主构建器连 `import type` 也要解析 | gotchas §8 |
+| Paseo 0.17 版本拒绝 | 最新稳定宿主 0.17.4 不满足旧 manifest `<0.17.0` | SDK、manifest 与握手版本需成组升级；macOS 基线另有 platform 模拟缺失及测试清理竞态 | gotchas §9；本地提交 `fix(compat): support Paseo 0.17.4` |
 
 ## 3. 自测 / 验收命令集（全部无人工可跑）
 
@@ -57,7 +68,7 @@ const require_ = createRequire(process.cwd() + '/package.json');
 const { DaemonClient } = await import(pathToFileURL(require_.resolve('@getpaseo/client/internal/daemon-client')).href);
 const home = process.env.PASEO_HOME ?? `${os.homedir()}/.paseo`;
 const lock = JSON.parse(readFileSync(home + '/paseo.pid', 'utf8'));
-const client = new DaemonClient({ url: 'ws://127.0.0.1:' + lock.listen.split(':').pop() + '/ws', clientId: 'paseo-im-selftest', clientType: 'cli', appVersion: '0.15.2', connectTimeoutMs: 8000,
+const client = new DaemonClient({ url: 'ws://127.0.0.1:' + lock.listen.split(':').pop() + '/ws', clientId: 'paseo-im-selftest', clientType: 'cli', appVersion: '0.17.4', connectTimeoutMs: 8000,
   localCredential: () => readFileSync(home + '/local-credential', 'utf8').trim(),
   logger: { debug(){}, info(){}, warn(){}, error(){} } });
 await client.connect();

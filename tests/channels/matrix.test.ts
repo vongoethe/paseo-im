@@ -216,7 +216,8 @@ afterEach(async () => {
     const harness = harnesses.pop()!;
     harness.controller.abort();
     await harness.adapter.stop().catch(() => {});
-    await rm(harness.dir, { recursive: true, force: true });
+    // Outbound own-message persistence can still finish after stop().
+    await rm(harness.dir, { recursive: true, force: true, maxRetries: 5, retryDelay: 10 });
   }
 });
 

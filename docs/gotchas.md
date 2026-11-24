@@ -181,3 +181,13 @@ T=$(mktemp -d) && git archive HEAD | tar -x -C "$T" && (cd "$T" && npm ci --omit
 实测结果：修复前干净副本 `node_modules/@getpaseo` 整个不存在，宿主构建器逐字复现上述报错；修复后 `npm ci --omit=dev` 装出 `client`/`protocol`/`relay`，构建通过（server bundle 11.4 MB、client 47 KB），把 bundle 按 daemon 语义包成 `(function(require){…})` 在函数作用域执行可正常 load（未触发 §1 的 `__dirname` 类崩溃），`tsc` 双侧 + 457 测试全绿。实机安装用独立 `PASEO_HOME`+独立端口（`pluginsEnabled=true`）复跑 `paseo plugin add <repo>`：安装成功、状态 `running/enabled`、日志 `[paseo] Plugin ready` 无未捕获异常、RPC `im.list` 返回 12 渠道/`im.choices` 正常。真实 IM 收发与 0.15.4 环境仍待实机补验。
 
 **版本耦合**：`server/daemon.ts` 的 `appVersion` 已与 `@getpaseo/client@0.16.0` 同步（该字符串参与 daemon 的能力门控），升级依赖时需一起改；0.16.2 宿主实测可构建并运行，但握手协议兼容性以实机为准。
+
+## 9. Fork 跟随 Paseo 升级：manifest 上界、SDK 与 macOS 测试门禁
+
+**现象**：2026-11-24 查 GitHub，最新稳定版为 [Paseo 0.17.4](https://github.com/getpaseo/paseo/releases/tag/v0.17.4)，旧 manifest `>=0.16.0 <0.17.0` 会明确拒绝此版本。升级前 macOS 全量测试还暴露 iMessage 的「非 macOS」用例失败，以及 Slack / Matrix 临时目录清理间歇 `ENOTEMPTY`。
+
+**根因**：manifest 的兼容范围独立于插件自身版本；仅升级宿主或创建新 Git 分支不会改变它。SDK 仍为 0.16.0，daemon `appVersion` 与配对脚本声明亦需同步。另一个更新陷阱是 [Git 插件 update](https://paseo.sh/docs/plugins#install-a-published-plugin) 跟随仓库默认 HEAD，初装 `--ref` 不会锁住后续更新。测试失败则来自独立基线问题：iMessage 用例未模拟 Linux，Slack / Matrix 的出站消息状态写盘可与测试目录删除竞态。
+
+**修复**：两个 SDK 固定至 0.17.4，更新 shrinkwrap、manifest `>=0.17.4 <0.18.0`，同步 daemon / 配对脚本 / 状态手册示例的 `appVersion`。增加 `tests/compatibility.test.ts`，守住 SDK、锁文件、握手声明与 manifest 的版本对应。iMessage 用例显式模拟并恢复平台；Slack 测试改为 await 异步清理，Slack / Matrix 的测试目录删除增加有限重试，让已排队的写入有机会结束。此处未改适配器运行逻辑。以 `stable` 承载 fork 修复，`main` 跟踪上游；默认分支的远端变更仍待显式 push 指令。
+
+**验证**：`npm run typecheck && npm test`：双侧类型检查通过，463 tests / 463 pass / 0 fail；脱敏和文档链接守卫通过。升级前原样门禁已记录上述基线失败；当前通过结果包含两项新增版本回归断言。尚未在用户运行中的 daemon 安装或重载，因此不把先前 0.16.2 的实机证据当作 0.17.4 实机验收。维护步骤见 [fork 维护约定](./fork-maintenance.md)。
