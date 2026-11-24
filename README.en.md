@@ -23,9 +23,11 @@ Channel status / defect fix index / no-human acceptance commands: [docs/status.m
 
 ## Install
 
-This fork targets Paseo **0.17.4 through 0.17.x** (daemon and app), with both SDKs pinned to 0.17.4. `stable` is the intended default branch; `main` tracks upstream. See [fork maintenance](./docs/fork-maintenance.md) for the update process and publication status.
+This fork targets Paseo **0.17.4 through 0.17.x** (daemon and app), with both SDKs pinned to 0.17.4. `stable` is the default branch; `main` tracks upstream. See [fork maintenance](./docs/fork-maintenance.md) for the update process and publication status.
 
 ```sh
+paseo plugin add git:vongoethe/paseo-im
+# Or install a local development checkout:
 paseo plugin add /absolute/path/to/paseo-im
 ```
 

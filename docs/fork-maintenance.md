@@ -5,10 +5,10 @@ This fork follows the latest stable Paseo release. The current target is [Paseo 
 ## Branches
 
 - `main`: keep aligned with `ClarePhang/paseo-im`'s `main`, without fork-specific commits.
-- `stable`: the intended default branch, containing compatibility fixes and tested upstream merges.
+- `stable`: the default branch, containing compatibility fixes and tested upstream merges.
 - Short-lived branches from `stable`: prepare fixes, Paseo upgrades, and upstream merges for review.
 
-Publication status: `stable` is prepared locally. It has not been pushed and GitHub's default branch remains `main`. After an explicit push instruction, publish `stable` and change the fork's GitHub default branch to `stable`. Local branch creation alone does not change GitHub's default.
+Publication status (2026-11-24): compatibility commit `12ec017` is pushed to `origin/stable`, and GitHub confirms `stable` as the default branch. `main` remains the upstream tracking branch. No scheduled sync or automatic merge has been enabled.
 
 Paseo's [Git update rules](https://paseo.sh/docs/plugins#install-a-published-plugin) resolve the repository's default HEAD on update. `--ref stable` selects the initial installation only. Changing the default branch is therefore part of making future updates use this fork's compatibility fixes.
 

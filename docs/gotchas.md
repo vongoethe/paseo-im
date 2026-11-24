@@ -188,6 +188,6 @@ T=$(mktemp -d) && git archive HEAD | tar -x -C "$T" && (cd "$T" && npm ci --omit
 
 **根因**：manifest 的兼容范围独立于插件自身版本；仅升级宿主或创建新 Git 分支不会改变它。SDK 仍为 0.16.0，daemon `appVersion` 与配对脚本声明亦需同步。另一个更新陷阱是 [Git 插件 update](https://paseo.sh/docs/plugins#install-a-published-plugin) 跟随仓库默认 HEAD，初装 `--ref` 不会锁住后续更新。测试失败则来自独立基线问题：iMessage 用例未模拟 Linux，Slack / Matrix 的出站消息状态写盘可与测试目录删除竞态。
 
-**修复**：两个 SDK 固定至 0.17.4，更新 shrinkwrap、manifest `>=0.17.4 <0.18.0`，同步 daemon / 配对脚本 / 状态手册示例的 `appVersion`。增加 `tests/compatibility.test.ts`，守住 SDK、锁文件、握手声明与 manifest 的版本对应。iMessage 用例显式模拟并恢复平台；Slack 测试改为 await 异步清理，Slack / Matrix 的测试目录删除增加有限重试，让已排队的写入有机会结束。此处未改适配器运行逻辑。以 `stable` 承载 fork 修复，`main` 跟踪上游；默认分支的远端变更仍待显式 push 指令。
+**修复**：两个 SDK 固定至 0.17.4，更新 shrinkwrap、manifest `>=0.17.4 <0.18.0`，同步 daemon / 配对脚本 / 状态手册示例的 `appVersion`。增加 `tests/compatibility.test.ts`，守住 SDK、锁文件、握手声明与 manifest 的版本对应。iMessage 用例显式模拟并恢复平台；Slack 测试改为 await 异步清理，Slack / Matrix 的测试目录删除增加有限重试，让已排队的写入有机会结束。此处未改适配器运行逻辑。以 `stable` 承载 fork 修复，`main` 跟踪上游；远端默认分支变更已在用户明确授权后完成（见下方验证）。
 
-**验证**：`npm run typecheck && npm test`：双侧类型检查通过，463 tests / 463 pass / 0 fail；脱敏和文档链接守卫通过。升级前原样门禁已记录上述基线失败；当前通过结果包含两项新增版本回归断言。尚未在用户运行中的 daemon 安装或重载，因此不把先前 0.16.2 的实机证据当作 0.17.4 实机验收。维护步骤见 [fork 维护约定](./fork-maintenance.md)。
+**验证**：`npm run typecheck && npm test`：双侧类型检查通过，463 tests / 463 pass / 0 fail；脱敏和文档链接守卫通过。升级前原样门禁已记录上述基线失败；当前通过结果包含两项新增版本回归断言。用户随后明确授权发布：兼容性提交 `12ec017` 已推送到 `origin/stable`，GitHub 设置页确认 `Default branch changed to stable`。尚未在用户运行中的 daemon 安装或重载，因此不把先前 0.16.2 的实机证据当作 0.17.4 实机验收。维护步骤见 [fork 维护约定](./fork-maintenance.md)。

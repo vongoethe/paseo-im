@@ -10,7 +10,7 @@
 | 项目 | 当前状态 | 验证 / 限制 |
 | --- | --- | --- |
 | Paseo 版本 | `>=0.17.4 <0.18.0`；client / plugin SDK 均固定为 0.17.4 | [GitHub 最新稳定版](https://github.com/getpaseo/paseo/releases/tag/v0.17.4)；双侧 typecheck + 463 测试通过；此版本实机加载与渠道收发待验 |
-| 分支维护 | 本地 `stable` 为拟用默认分支，`main` 保持上游同步用途 | GitHub 默认仍为 `main`，未 push、未开启定时同步；步骤见 [fork 维护约定](./fork-maintenance.md) |
+| 分支维护 | `stable` 已推送并设为 GitHub 默认分支，`main` 保持上游同步用途 | 兼容性提交 `12ec017` 已发布；GitHub 设置页确认 `Default branch changed to stable`；未开启定时同步，步骤见 [fork 维护约定](./fork-maintenance.md) |
 | macOS 门禁 | 修复非 macOS 用例的 platform 模拟，以及 Slack / Matrix 测试临时目录清理竞态 | 仅调整测试；未改渠道适配器，见 gotchas §9 |
 
 兼容性修复的本地提交主题：`fix(compat): support Paseo 0.17.4`（通过 `git log --oneline --grep='support Paseo 0.17.4'` 对照）。Agent 参与：autonomous，OpenAI / GPT-6；尚待人工 review。
