@@ -9,7 +9,7 @@
 
 | 项目 | 当前状态 | 验证 / 限制 |
 | --- | --- | --- |
-| Paseo 版本 | `>=0.17.4 <0.18.0`；client / plugin SDK 均固定为 0.17.4 | [GitHub 最新稳定版](https://github.com/getpaseo/paseo/releases/tag/v0.17.4)；双侧 typecheck + 463 测试通过；此版本实机加载与渠道收发待验 |
+| Paseo 版本 | `>=0.17.3 <0.18.0`；client / plugin SDK 均固定为 0.17.3 | [最低支持版本](https://github.com/getpaseo/paseo/releases/tag/v0.17.3)；双侧 typecheck + 463 测试通过；此版本实机加载与渠道收发待验 |
 | 分支维护 | `stable` 已推送并设为 GitHub 默认分支，`main` 保持上游同步用途 | 兼容性提交 `12ec017` 已发布；GitHub 设置页确认 `Default branch changed to stable`；未开启定时同步，步骤见 [fork 维护约定](./fork-maintenance.md) |
 | macOS 门禁 | 修复非 macOS 用例的 platform 模拟，以及 Slack / Matrix 测试临时目录清理竞态 | 仅调整测试；未改渠道适配器，见 gotchas §9 |
 
@@ -39,6 +39,7 @@
 | P1×10 / P2×30 | 各渠道审查项 | 四组并行深审 | 审查修复提交线（36 文件 +1993/-295） | 同上 |
 | 全新安装构建失败（issue #1） | `paseo plugin add` 报 `Could not resolve type dependency "@getpaseo/client"`，侧栏无 IM 入口 | `@getpaseo/client` 只在 devDependencies，`npm ci --omit=dev` 后生产树无包，宿主构建器连 `import type` 也要解析 | gotchas §8 |
 | Paseo 0.17 版本拒绝 | 最新稳定宿主 0.17.4 不满足旧 manifest `<0.17.0` | SDK、manifest 与握手版本需成组升级；macOS 基线另有 platform 模拟缺失及测试清理竞态 | gotchas §9；本地提交 `fix(compat): support Paseo 0.17.4` |
+| Paseo 0.17.3 最低版本 | 初次兼容升级把最低版本设为 0.17.4，拒绝 0.17.3 | 按用户要求以 0.17.3 SDK / 握手版本为基线，manifest 改为 `>=0.17.3 <0.18.0` | gotchas §9 补充；提交主题 `fix(compat): support Paseo from 0.17.3` |
 
 ## 3. 自测 / 验收命令集（全部无人工可跑）
 
@@ -68,7 +69,7 @@ const require_ = createRequire(process.cwd() + '/package.json');
 const { DaemonClient } = await import(pathToFileURL(require_.resolve('@getpaseo/client/internal/daemon-client')).href);
 const home = process.env.PASEO_HOME ?? `${os.homedir()}/.paseo`;
 const lock = JSON.parse(readFileSync(home + '/paseo.pid', 'utf8'));
-const client = new DaemonClient({ url: 'ws://127.0.0.1:' + lock.listen.split(':').pop() + '/ws', clientId: 'paseo-im-selftest', clientType: 'cli', appVersion: '0.17.4', connectTimeoutMs: 8000,
+const client = new DaemonClient({ url: 'ws://127.0.0.1:' + lock.listen.split(':').pop() + '/ws', clientId: 'paseo-im-selftest', clientType: 'cli', appVersion: '0.17.3', connectTimeoutMs: 8000,
   localCredential: () => readFileSync(home + '/local-credential', 'utf8').trim(),
   logger: { debug(){}, info(){}, warn(){}, error(){} } });
 await client.connect();

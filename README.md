@@ -23,7 +23,7 @@
 
 ## 安装
 
-本 fork 面向 Paseo **0.17.4 至 0.17.x**（daemon 和 App 均需满足），两个 SDK 固定为 0.17.4。`stable` 为默认分支，`main` 跟踪上游；升级流程与发布状态见 [fork 维护约定](./docs/fork-maintenance.md)。
+本 fork 面向 Paseo **0.17.3 至 0.17.x**（daemon 和 App 均需满足），两个 SDK 固定为 0.17.3。`stable` 为默认分支，`main` 跟踪上游；升级流程与发布状态见 [fork 维护约定](./docs/fork-maintenance.md)。
 
 ```sh
 paseo plugin add git:vongoethe/paseo-im

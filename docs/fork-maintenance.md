@@ -1,6 +1,6 @@
 # Fork maintenance
 
-This fork follows the latest stable Paseo release. The current target is [Paseo 0.17.4](https://github.com/getpaseo/paseo/releases/tag/v0.17.4), published on 2026-11-23. Both `@getpaseo/client` and `@getpaseo/plugin` are pinned to 0.17.4; the manifest admits `>=0.17.4 <0.18.0`. Client and server typechecks validate SDK usage; real channel delivery on this release still needs live verification.
+This fork supports [Paseo 0.17.3](https://github.com/getpaseo/paseo/releases/tag/v0.17.3) and later 0.17.x releases, including the current stable release 0.17.4. Both `@getpaseo/client` and `@getpaseo/plugin` are pinned to the minimum supported baseline, 0.17.3; the manifest admits `>=0.17.3 <0.18.0`. Client and server typechecks validate SDK usage; real channel delivery on these releases still needs live verification.
 
 ## Branches
 
@@ -40,7 +40,7 @@ Review the merge into `stable`, including the SDK pins, lockfile, manifest requi
 Check [GitHub's latest stable release](https://github.com/getpaseo/paseo/releases/latest), rather than an unreleased `main` commit. On a branch from `stable`:
 
 1. Run the existing typecheck and tests before editing.
-2. Update both SDK pins in `package.json` together, then run `npm install --ignore-scripts` to update `npm-shrinkwrap.json`.
+2. Keep both SDKs pinned to the oldest supported baseline. If adopting an API that requires a newer minimum, update both pins in `package.json` together, then run `npm install --ignore-scripts` to update `npm-shrinkwrap.json`. A new patch release alone does not require raising the minimum.
 3. Align `server/daemon.ts` and `scripts/verify-pairing.mjs` `appVersion` with the client SDK. Update the manifest range and the version in the status handbook's self-test example.
 4. Adapt any changed APIs using the released SDK and current plugin docs. Never set an unbounded compatibility range just to bypass rejection.
 5. Run both typechecks, the full tests, package and runtime guards. `tests/compatibility.test.ts` catches version drift between the SDKs, lockfile, client declarations and manifest.

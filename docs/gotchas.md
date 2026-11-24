@@ -191,3 +191,13 @@ T=$(mktemp -d) && git archive HEAD | tar -x -C "$T" && (cd "$T" && npm ci --omit
 **修复**：两个 SDK 固定至 0.17.4，更新 shrinkwrap、manifest `>=0.17.4 <0.18.0`，同步 daemon / 配对脚本 / 状态手册示例的 `appVersion`。增加 `tests/compatibility.test.ts`，守住 SDK、锁文件、握手声明与 manifest 的版本对应。iMessage 用例显式模拟并恢复平台；Slack 测试改为 await 异步清理，Slack / Matrix 的测试目录删除增加有限重试，让已排队的写入有机会结束。此处未改适配器运行逻辑。以 `stable` 承载 fork 修复，`main` 跟踪上游；远端默认分支变更已在用户明确授权后完成（见下方验证）。
 
 **验证**：`npm run typecheck && npm test`：双侧类型检查通过，463 tests / 463 pass / 0 fail；脱敏和文档链接守卫通过。升级前原样门禁已记录上述基线失败；当前通过结果包含两项新增版本回归断言。用户随后明确授权发布：兼容性提交 `12ec017` 已推送到 `origin/stable`，GitHub 设置页确认 `Default branch changed to stable`。尚未在用户运行中的 daemon 安装或重载，因此不把先前 0.16.2 的实机证据当作 0.17.4 实机验收。维护步骤见 [fork 维护约定](./fork-maintenance.md)。
+
+### 最低版本补充：支持从 0.17.3 开始（2026-11-24）
+
+**现象**：用户需要在 Paseo 0.17.3 安装，但初次升级声明的最低版本 0.17.4 仍会拒绝它。
+
+**根因**：把验证时的最新补丁版本直接当成最低版本，会排除同一 minor 下需要支持的旧补丁。最低版本应对应最旧支持基线。
+
+**修复**：按用户要求，两个 SDK、shrinkwrap、daemon / 自测脚本的 `appVersion` 同步至 0.17.3；manifest 改为 `>=0.17.3 <0.18.0`。现有版本回归断言继续约束这些值同步，README、overview、状态手册与维护流程同步更新。未改变协议字段或渠道适配器。
+
+**验证**：变更前后均跑 `npm run typecheck && npm test`，均为 463 pass / 0 fail；变更后 package / runtime 守卫通过；隔离目录 `npm ci --omit=dev --ignore-scripts` 成功，0.17.3 的 `createPaseoApi` 与 `DaemonClient` 两个运行时导入正常。真实 daemon 加载与 IM 收发仍待实机验收。提交主题为 `fix(compat): support Paseo from 0.17.3`。

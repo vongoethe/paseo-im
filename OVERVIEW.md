@@ -8,7 +8,7 @@ Each connection runs a channel adapter in the plugin's daemon subprocess: it hol
 
 ## Setup
 
-This fork requires Paseo 0.17.4 through 0.17.x on both the daemon and app. Open **IM** in the sidebar, pick a channel, and enter that platform's bot credentials (token, app ID/secret, or homeserver login). WhatsApp, WeChat, and WeCom bot use a QR pairing flow inside the screen instead of manual tokens. Each connection needs a destination: an existing Paseo chat, or a workspace with a provider/model — conversations then create their own agents in that workspace. iMessage requires a macOS daemon host with Full Disk Access and Messages automation; on Linux it shows as unsupported. The WeCom self-built app requires a publicly reachable callback base URL.
+This fork requires Paseo 0.17.3 through 0.17.x on both the daemon and app. Open **IM** in the sidebar, pick a channel, and enter that platform's bot credentials (token, app ID/secret, or homeserver login). WhatsApp, WeChat, and WeCom bot use a QR pairing flow inside the screen instead of manual tokens. Each connection needs a destination: an existing Paseo chat, or a workspace with a provider/model — conversations then create their own agents in that workspace. iMessage requires a macOS daemon host with Full Disk Access and Messages automation; on Linux it shows as unsupported. The WeCom self-built app requires a publicly reachable callback base URL.
 
 ## Capabilities and limits
 

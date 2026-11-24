@@ -28,7 +28,7 @@ const client = new DaemonClient({
   url,
   clientId: "paseo-im-selftest",
   clientType: "cli",
-  appVersion: "0.17.4",
+  appVersion: "0.17.3",
   connectTimeoutMs: 8000,
   localCredential: () => readFileSync(`${home}/local-credential`, "utf8").trim(),
   logger: { debug() {}, info() {}, warn() {}, error() {} },
